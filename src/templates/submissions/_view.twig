@@ -31,6 +31,25 @@
 			</p>
 		{% endif %}
 
+		{# Manual delivery: retries failed sends, or delivers a reviewed spam
+		   submission (sending marks it as not spam — captcha tokens are
+		   single-use, so re-scoring is not possible) #}
+		<form method="post">
+			{{ csrfInput() }}
+			{{ actionInput('secure-forms/submissions/resend') }}
+			{{ redirectInput('secure-forms/submissions/' ~ submission.id) }}
+			{{ hiddenInput('submissionId', submission.id) }}
+			<button type="submit" class="btn submit">
+				{% if status == 'failed' %}
+					{{ 'Retry sending notification email'|t('secure-forms') }}
+				{% elseif status == 'spam' %}
+					{{ 'Not spam — send notification email'|t('secure-forms') }}
+				{% else %}
+					{{ 'Resend notification email'|t('secure-forms') }}
+				{% endif %}
+			</button>
+		</form>
+
 		<hr>
 
 		<table class="data fullwidth">

@@ -1,5 +1,13 @@
 # Release Notes for Secure Forms
 
+## 1.2.0 - 2026-07-02
+
+### Added
+
+- Control panel nav badge showing the number of submissions whose notification email never went out (failed sends need attention; spam is excluded)
+- Manual delivery from the submission detail view: retry failed sends, or deliver a reviewed spam submission (marks it as not spam, keeping the score and reason for the record)
+- README section documenting the failure flow, and an agency-focused warning that the free reCAPTCHA assessment quota is shared organization-wide across all keys
+
 ## 1.1.0 - 2026-07-02
 
 ### Added

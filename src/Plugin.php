@@ -67,7 +67,32 @@ class Plugin extends BasePlugin
         $item = parent::getCpNavItem();
         $item['label'] = Craft::t('secure-forms', 'Secure Forms');
 
+        // Alert on undelivered submissions: the badge shows how many failed
+        // sends need review (spam is excluded — that's not an error)
+        $failedCount = $this->getFailedSubmissionCount();
+
+        if ($failedCount > 0) {
+            $item['badgeCount'] = $failedCount;
+        }
+
         return $item;
+    }
+
+    /**
+     * Number of non-spam submissions whose notification email never went out.
+     */
+    public function getFailedSubmissionCount(): int
+    {
+        try {
+            return (int)(new \craft\db\Query())
+                ->from(\recranet\secureforms\elements\Submission::TABLE)
+                ->where(['isSpam' => false])
+                ->andWhere(['not', ['sendError' => null]])
+                ->count();
+        } catch (\Throwable) {
+            // Table missing (mid-install/uninstall) — no badge
+            return 0;
+        }
     }
 
     protected function createSettingsModel(): ?Model
