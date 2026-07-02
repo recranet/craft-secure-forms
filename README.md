@@ -112,6 +112,8 @@ Captcha keys live in `.env`:
 
 ```bash
 # RECAPTCHA (leave empty to disable the captcha in local dev)
+# Use the *legacy secret key* from the Google Cloud console — see the
+# "Google reCAPTCHA deprecation notes" section below
 RECAPTCHA_SITE_KEY=
 RECAPTCHA_SECRET_KEY=
 #RECAPTCHA_SCORE_THRESHOLD=0.5
@@ -137,6 +139,16 @@ All other settings can optionally be overridden per environment:
 #SECURE_FORMS_HONEYPOT_PARAM=honeyPotProtection
 #SECURE_FORMS_CAPTCHA_PROVIDER=recaptcha-v3
 ```
+
+### Google reCAPTCHA deprecation notes
+
+Google deprecated classic reCAPTCHA and migrated all keys to Google Cloud projects (automated migration completed Q1 2026; keys without a Cloud project have API access locked). What this means for this plugin:
+
+- **Keys live in a Google Cloud project** now, created either in the [Cloud console](https://console.cloud.google.com/security/recaptcha) or programmatically via the reCAPTCHA Enterprise API ([`projects.keys.create`](https://cloud.google.com/recaptcha/docs/reference/rest/v1/projects.keys/create) with `webSettings.integrationType` `SCORE` (v3) or `CHECKBOX` (v2) and the `allowedDomains` list). The key ID is what goes into `RECAPTCHA_SITE_KEY`.
+- This plugin verifies tokens via the legacy [`siteverify`](https://developers.google.com/recaptcha/docs/verify) endpoint, which Google keeps supported for migrated and Enterprise-created keys. Use the **legacy secret key** as `RECAPTCHA_SECRET_KEY` — available in the Cloud console under *Integration → Use legacy key*, or via the [`retrieveLegacySecretKey`](https://cloud.google.com/recaptcha/docs/reference/rest/v1/projects.keys/retrieveLegacySecretKey) API method.
+- Keep the key's `allowedDomains` in sync with the site's domains — a domain missing from the allowlist stops the widget from producing tokens, which this plugin reports as a visible error (never as silent spam).
+- **Quota caveat**: beyond the free tier (10,000 assessments/month), `siteverify` *fails open* — Google returns `success: true` with a fixed score of `0.9` instead of verifying. High-traffic sites should watch their assessment quota, since spam protection silently degrades above it.
+- Google's long-term replacement for `siteverify` is the Enterprise [`createAssessment`](https://cloud.google.com/recaptcha/docs/reference/rest/v1/projects.assessments/create) API (requires a Cloud project ID + credentials, returns `riskAnalysis.score` and token validity). Not yet supported by this plugin; **Cloudflare Turnstile** (free, no quota fail-open) is the available alternative in the meantime.
 
 ## Email templates
 
