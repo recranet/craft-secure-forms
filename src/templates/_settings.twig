@@ -161,6 +161,14 @@
 		size: 5,
 		errors: settings.getErrors('recaptchaScoreThreshold'),
 	}) }}
+
+	{{ forms.lightswitchField({
+		label: 'Hide badge'|t('secure-forms'),
+		instructions: 'Hide the reCAPTCHA badge. Google requires the reCAPTCHA attribution text to be visible in your form when enabled.'|t('secure-forms'),
+		id: 'recaptchaHideBadge',
+		name: 'recaptchaHideBadge',
+		on: settings.recaptchaHideBadge,
+	}) }}
 </div>
 
 <div id="provider-turnstile" class="{{ settings.captchaProvider != 'turnstile' ? 'hidden' }}">

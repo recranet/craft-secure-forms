@@ -88,6 +88,12 @@ JS;
             . Html::jsFile("https://www.google.com/recaptcha/api.js?render=$siteKey", ['async' => true, 'defer' => true])
             . Html::script($js);
 
+        // Hiding the badge is allowed by Google as long as the form shows the
+        // reCAPTCHA attribution text
+        if ($this->settings->recaptchaHideBadge) {
+            $html .= Html::style('.grecaptcha-badge{visibility:hidden}');
+        }
+
         return Template::raw($html);
     }
 }

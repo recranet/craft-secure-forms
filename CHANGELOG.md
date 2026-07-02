@@ -9,6 +9,7 @@
 - Submission storage as elements with sent/spam/failed statuses; dynamic form fields stored as JSON in a fixed schema
 - Persisted spam classification per submission: `isSpam`, `spamScore` (reCAPTCHA v3 score) and `spamReason`
 - Spam protection: built-in honeypot plus Google reCAPTCHA v2/v3 and Cloudflare Turnstile (experimental)
+- Optional `recaptchaHideBadge` setting that hides the reCAPTCHA v3 badge (show the attribution text in your form instead)
 - Captcha configuration problems (missing/invalid keys, domain not allowlisted, unreachable verification API) are reported as visible errors and logged — never silently classified as spam
 - Submissions are persisted before any email is attempted; send failures are recorded on the submission so no message is ever lost
 - Notification and confirmation emails rendered from site templates, with hashed per-form overrides

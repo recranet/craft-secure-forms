@@ -60,6 +60,8 @@ class Settings extends Model
     public ?string $recaptchaSecretKey = null;
     /** @var float|string Minimum reCAPTCHA v3 score (0–1) required to not be classified as spam */
     public float|string $recaptchaScoreThreshold = 0.5;
+    /** @var bool Hide the reCAPTCHA v3 badge (Google requires visible attribution text in your form when enabled) */
+    public bool $recaptchaHideBadge = false;
     /** @var string|null Cloudflare Turnstile site key (experimental) */
     public ?string $turnstileSiteKey = null;
     /** @var string|null Cloudflare Turnstile secret key (experimental) */
