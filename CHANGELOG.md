@@ -1,5 +1,12 @@
 # Release Notes for Secure Forms
 
+## 1.1.0 - 2026-07-02
+
+### Added
+
+- reCAPTCHA Enterprise provider (`recaptcha-enterprise`): verifies tokens via the `createAssessment` API using a Google Cloud project ID and API key, persists the real risk score, and fails closed (visible error) on quota instead of siteverify's silent fail-open
+- Documentation for the Google reCAPTCHA classic deprecation, Cloud key management (legacy secret keys, `allowedDomains`) and assessment quota/billing tiers
+
 ## 1.0.0 - 2026-07-02
 
 ### Added

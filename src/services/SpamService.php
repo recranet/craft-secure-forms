@@ -4,6 +4,7 @@ namespace recranet\secureforms\services;
 
 use recranet\secureforms\captchas\CaptchaError;
 use recranet\secureforms\captchas\CaptchaInterface;
+use recranet\secureforms\captchas\RecaptchaEnterprise;
 use recranet\secureforms\captchas\RecaptchaV2;
 use recranet\secureforms\captchas\RecaptchaV3;
 use recranet\secureforms\captchas\Turnstile;
@@ -31,6 +32,7 @@ class SpamService extends Component
         return match ($settings->captchaProvider) {
             Settings::CAPTCHA_RECAPTCHA_V2 => new RecaptchaV2($settings),
             Settings::CAPTCHA_RECAPTCHA_V3 => new RecaptchaV3($settings),
+            Settings::CAPTCHA_RECAPTCHA_ENTERPRISE => new RecaptchaEnterprise($settings),
             Settings::CAPTCHA_TURNSTILE => new Turnstile($settings),
             default => null,
         };

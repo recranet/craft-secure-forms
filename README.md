@@ -12,7 +12,7 @@ Contact forms for Craft CMS 5 with spam protection, stored submissions and prope
 
 - Submission storage as elements with a fixed schema — dynamic form fields are stored as JSON and **expanded back into columns on CSV export**
 - Persisted spam classification: `isSpam`, `spamScore` (reCAPTCHA v3 score), `spamReason`
-- Spam protection: honeypot + Google reCAPTCHA v2/v3 or Cloudflare Turnstile (experimental)
+- Spam protection: honeypot + Google reCAPTCHA v2/v3/Enterprise or Cloudflare Turnstile (experimental)
 - Notification + optional confirmation emails, rendered from site templates
 - **Email / SMTP test utility** in the control panel (works with `allowAdminChanges` disabled) that surfaces full SMTP transport errors
 - Control panel section with per-form sources, statuses (sent / spam / failed) and search
@@ -85,14 +85,18 @@ return [
     'honeypotEnabled' => App::env('SECURE_FORMS_HONEYPOT_ENABLED') ?? true,
     'honeypotParam' => App::env('SECURE_FORMS_HONEYPOT_PARAM') ?: 'honeyPotProtection',
 
-    // Captcha: '', recaptcha-v2, recaptcha-v3, turnstile (experimental).
-    // Defaults to reCAPTCHA v3 when a site key is configured, off otherwise.
+    // Captcha: '', recaptcha-v2, recaptcha-v3, recaptcha-enterprise,
+    // turnstile (experimental). Defaults to reCAPTCHA v3 when a site key is
+    // configured, off otherwise.
     'captchaProvider' => App::env('SECURE_FORMS_CAPTCHA_PROVIDER')
         ?? (App::env('RECAPTCHA_SITE_KEY') ? 'recaptcha-v3' : ''),
     'recaptchaSiteKey' => '$RECAPTCHA_SITE_KEY',
     'recaptchaSecretKey' => '$RECAPTCHA_SECRET_KEY',
     'recaptchaScoreThreshold' => App::env('RECAPTCHA_SCORE_THRESHOLD') ?? 0.5,
     'recaptchaHideBadge' => App::env('RECAPTCHA_HIDE_BADGE') ?? true,
+    // Only used by the recaptcha-enterprise provider (createAssessment API)
+    'recaptchaProjectId' => '$RECAPTCHA_PROJECT_ID',
+    'recaptchaApiKey' => '$RECAPTCHA_API_KEY',
     'turnstileSiteKey' => '$TURNSTILE_SITE_KEY',
     'turnstileSecretKey' => '$TURNSTILE_SECRET_KEY',
 ];
@@ -118,6 +122,9 @@ RECAPTCHA_SITE_KEY=
 RECAPTCHA_SECRET_KEY=
 #RECAPTCHA_SCORE_THRESHOLD=0.5
 #RECAPTCHA_HIDE_BADGE=true
+# Only for the recaptcha-enterprise provider (createAssessment API)
+#RECAPTCHA_PROJECT_ID=
+#RECAPTCHA_API_KEY=
 
 # TURNSTILE (Cloudflare, experimental alternative to reCAPTCHA)
 TURNSTILE_SITE_KEY=
@@ -147,8 +154,8 @@ Google deprecated classic reCAPTCHA and migrated all keys to Google Cloud projec
 - **Keys live in a Google Cloud project** now, created either in the [Cloud console](https://console.cloud.google.com/security/recaptcha) or programmatically via the reCAPTCHA Enterprise API ([`projects.keys.create`](https://cloud.google.com/recaptcha/docs/reference/rest/v1/projects.keys/create) with `webSettings.integrationType` `SCORE` (v3) or `CHECKBOX` (v2) and the `allowedDomains` list). The key ID is what goes into `RECAPTCHA_SITE_KEY`.
 - This plugin verifies tokens via the legacy [`siteverify`](https://developers.google.com/recaptcha/docs/verify) endpoint, which Google keeps supported for migrated and Enterprise-created keys. Use the **legacy secret key** as `RECAPTCHA_SECRET_KEY` — available in the Cloud console under *Integration → Use legacy key*, or via the [`retrieveLegacySecretKey`](https://cloud.google.com/recaptcha/docs/reference/rest/v1/projects.keys/retrieveLegacySecretKey) API method.
 - Keep the key's `allowedDomains` in sync with the site's domains — a domain missing from the allowlist stops the widget from producing tokens, which this plugin reports as a visible error (never as silent spam).
-- **Quota caveat**: beyond the free tier (10,000 assessments/month), `siteverify` *fails open* — Google returns `success: true` with a fixed score of `0.9` instead of verifying. High-traffic sites should watch their assessment quota, since spam protection silently degrades above it.
-- Google's long-term replacement for `siteverify` is the Enterprise [`createAssessment`](https://cloud.google.com/recaptcha/docs/reference/rest/v1/projects.assessments/create) API (requires a Cloud project ID + credentials, returns `riskAnalysis.score` and token validity). Not yet supported by this plugin; **Cloudflare Turnstile** (free, no quota fail-open) is the available alternative in the meantime.
+- **Quota**: without a billing account (Essentials tier) reCAPTCHA includes 10,000 free assessments per month, **aggregated across the whole Google Cloud organization** — all sites and keys share the pool. Beyond it, `siteverify` *fails open* (returns `success: true` with a fixed `0.9` score instead of verifying), silently degrading spam protection. Linking a billing account (Standard tier) keeps the same 10,000 free but replaces the fail-open cliff with paid verification: a flat $8 covers up to 100,000 assessments/month, then $1 per 1,000. This plugin only generates assessments on actual form submits (not page views), so the quota maps 1:1 to submission attempts. See [reCAPTCHA billing](https://docs.cloud.google.com/recaptcha/docs/billing-information) and [tier comparison](https://docs.cloud.google.com/recaptcha/docs/compare-tiers).
+- Google's long-term replacement for `siteverify` is the Enterprise [`createAssessment`](https://cloud.google.com/recaptcha/docs/reference/rest/v1/projects.assessments/create) API, supported by this plugin as the `recaptcha-enterprise` provider (requires `RECAPTCHA_PROJECT_ID` + `RECAPTCHA_API_KEY`). It returns the real risk score and *fails closed* on quota (HTTP 429, surfaced as a visible error) instead of silently passing. **Cloudflare Turnstile** (free, no quota) remains available as a non-Google alternative.
 
 ## Email templates
 

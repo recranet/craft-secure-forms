@@ -125,14 +125,18 @@
 		{ value: '', label: 'None'|t('secure-forms') },
 		{ value: 'recaptcha-v2', label: 'Google reCAPTCHA v2 (checkbox)' },
 		{ value: 'recaptcha-v3', label: 'Google reCAPTCHA v3 (invisible, score-based)' },
+		{ value: 'recaptcha-enterprise', label: 'Google reCAPTCHA Enterprise (invisible, score-based)' },
 		{ value: 'turnstile', label: 'Cloudflare Turnstile — experimental'|t('secure-forms') },
 	],
 }) }}
 
 {% set showRecaptcha = settings.captchaProvider starts with 'recaptcha' %}
+{% set showScore = settings.captchaProvider in ['recaptcha-v3', 'recaptcha-enterprise'] %}
 
 <div id="provider-recaptcha-v2" class="{{ settings.captchaProvider != 'recaptcha-v2' ? 'hidden' }}"></div>
+<div id="provider-recaptcha-v3" class="{{ settings.captchaProvider != 'recaptcha-v3' ? 'hidden' }}"></div>
 
+{# Shared reCAPTCHA fields (all Google providers) — toggled by the JS below #}
 <div id="provider-recaptcha-keys" class="{{ not showRecaptcha ? 'hidden' }}">
 	{{ forms.autosuggestField({
 		label: 'reCAPTCHA site key'|t('secure-forms'),
@@ -144,6 +148,7 @@
 
 	{{ forms.autosuggestField({
 		label: 'reCAPTCHA secret key'|t('secure-forms'),
+		instructions: 'The (legacy) secret key for siteverify. Not used by the Enterprise provider.'|t('secure-forms'),
 		id: 'recaptchaSecretKey',
 		name: 'recaptchaSecretKey',
 		value: settings.recaptchaSecretKey,
@@ -151,7 +156,8 @@
 	}) }}
 </div>
 
-<div id="provider-recaptcha-v3" class="{{ settings.captchaProvider != 'recaptcha-v3' ? 'hidden' }}">
+{# Score-based providers (v3 + Enterprise) — toggled by the JS below #}
+<div id="provider-recaptcha-score" class="{{ not showScore ? 'hidden' }}">
 	{{ forms.textField({
 		label: 'Score threshold'|t('secure-forms'),
 		instructions: 'Submissions scoring below this value (0–1) are classified as spam. The score is stored with every submission.'|t('secure-forms'),
@@ -168,6 +174,25 @@
 		id: 'recaptchaHideBadge',
 		name: 'recaptchaHideBadge',
 		on: settings.recaptchaHideBadge,
+	}) }}
+</div>
+
+<div id="provider-recaptcha-enterprise" class="{{ settings.captchaProvider != 'recaptcha-enterprise' ? 'hidden' }}">
+	{{ forms.autosuggestField({
+		label: 'Google Cloud project ID'|t('secure-forms'),
+		id: 'recaptchaProjectId',
+		name: 'recaptchaProjectId',
+		value: settings.recaptchaProjectId,
+		suggestEnvVars: true,
+	}) }}
+
+	{{ forms.autosuggestField({
+		label: 'Google Cloud API key'|t('secure-forms'),
+		instructions: 'API key with access to the reCAPTCHA Enterprise API, used for createAssessment calls.'|t('secure-forms'),
+		id: 'recaptchaApiKey',
+		name: 'recaptchaApiKey',
+		value: settings.recaptchaApiKey,
+		suggestEnvVars: true,
 	}) }}
 </div>
 
@@ -192,13 +217,16 @@
 </div>
 
 {% js %}
-	// Show the shared reCAPTCHA key fields for both v2 and v3
+	// Toggle the shared reCAPTCHA sections: keys for all Google providers,
+	// score fields for the score-based ones (v3 + Enterprise)
 	(function () {
 		var select = document.getElementById('{{ 'captchaProvider'|namespaceInputId }}');
 		var keys = document.getElementById('{{ 'provider-recaptcha-keys'|namespaceInputId }}');
-		if (!select || !keys) return;
+		var score = document.getElementById('{{ 'provider-recaptcha-score'|namespaceInputId }}');
+		if (!select || !keys || !score) return;
 		select.addEventListener('change', function () {
 			keys.classList.toggle('hidden', select.value.indexOf('recaptcha') !== 0);
+			score.classList.toggle('hidden', ['recaptcha-v3', 'recaptcha-enterprise'].indexOf(select.value) === -1);
 		});
 	})();
 {% endjs %}

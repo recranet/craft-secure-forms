@@ -17,6 +17,7 @@ class Settings extends Model
     public const CAPTCHA_NONE = '';
     public const CAPTCHA_RECAPTCHA_V2 = 'recaptcha-v2';
     public const CAPTCHA_RECAPTCHA_V3 = 'recaptcha-v3';
+    public const CAPTCHA_RECAPTCHA_ENTERPRISE = 'recaptcha-enterprise';
     public const CAPTCHA_TURNSTILE = 'turnstile';
 
     // What the visitor sees when their submission is classified as spam
@@ -62,6 +63,10 @@ class Settings extends Model
     public float|string $recaptchaScoreThreshold = 0.5;
     /** @var bool Hide the reCAPTCHA v3 badge (Google requires visible attribution text in your form when enabled) */
     public bool $recaptchaHideBadge = false;
+    /** @var string|null Google Cloud project ID (reCAPTCHA Enterprise only) */
+    public ?string $recaptchaProjectId = null;
+    /** @var string|null Google Cloud API key for assessments (reCAPTCHA Enterprise only) */
+    public ?string $recaptchaApiKey = null;
     /** @var string|null Cloudflare Turnstile site key (experimental) */
     public ?string $turnstileSiteKey = null;
     /** @var string|null Cloudflare Turnstile secret key (experimental) */
@@ -76,6 +81,8 @@ class Settings extends Model
                     'toEmail',
                     'recaptchaSiteKey',
                     'recaptchaSecretKey',
+                    'recaptchaProjectId',
+                    'recaptchaApiKey',
                     'turnstileSiteKey',
                     'turnstileSecretKey',
                 ],
@@ -90,6 +97,7 @@ class Settings extends Model
                 self::CAPTCHA_NONE,
                 self::CAPTCHA_RECAPTCHA_V2,
                 self::CAPTCHA_RECAPTCHA_V3,
+                self::CAPTCHA_RECAPTCHA_ENTERPRISE,
                 self::CAPTCHA_TURNSTILE,
             ]],
             [['spamAction'], 'in', 'range' => [self::SPAM_ACTION_SILENT, self::SPAM_ACTION_ERROR]],
@@ -122,6 +130,16 @@ class Settings extends Model
     public function getRecaptchaSecretKey(): string
     {
         return trim((string)App::parseEnv($this->recaptchaSecretKey));
+    }
+
+    public function getRecaptchaProjectId(): string
+    {
+        return trim((string)App::parseEnv($this->recaptchaProjectId));
+    }
+
+    public function getRecaptchaApiKey(): string
+    {
+        return trim((string)App::parseEnv($this->recaptchaApiKey));
     }
 
     public function getTurnstileSiteKey(): string
