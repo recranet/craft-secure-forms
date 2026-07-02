@@ -48,9 +48,10 @@ class SpamService extends Component
     {
         $settings = Plugin::getInstance()->getSettings();
 
-        // Honeypot: a filled-in hidden field is a bot, no captcha needed
+        // Honeypot: a filled-in hidden field is definitely a bot — reject
+        // outright, there is nothing worth reviewing
         if ($settings->honeypotEnabled && trim((string)$request->getBodyParam($settings->honeypotParam)) !== '') {
-            return new SpamVerdict(isSpam: true, reason: 'honeypot');
+            return new SpamVerdict(isSpam: true, reason: 'honeypot', reject: true);
         }
 
         $captcha = $this->getCaptcha();
@@ -78,10 +79,25 @@ class SpamService extends Component
             return new SpamVerdict(isSpam: false, score: $verification->score);
         }
 
-        $reason = $verification->score !== null
-            ? sprintf('captcha-score (%s below threshold)', $verification->score)
-            : sprintf('captcha-failed (%s)', implode(', ', $verification->errorCodes) ?: 'invalid token');
+        // Scored spam is split in two: very low scores are definite bots and
+        // are rejected without being stored; the gray zone between the reject
+        // and score thresholds is stored as spam for human review
+        if ($verification->score !== null) {
+            $reject = $verification->score < $settings->getRecaptchaRejectThreshold();
 
-        return new SpamVerdict(isSpam: true, score: $verification->score, reason: $reason);
+            return new SpamVerdict(
+                isSpam: true,
+                score: $verification->score,
+                reason: sprintf('captcha-score (%s below threshold)', $verification->score),
+                reject: $reject,
+            );
+        }
+
+        // Unscored failures (invalid/expired token) are ambiguous — a slow
+        // legit visitor can hit these — so they stay reviewable
+        return new SpamVerdict(
+            isSpam: true,
+            reason: sprintf('captcha-failed (%s)', implode(', ', $verification->errorCodes) ?: 'invalid token'),
+        );
     }
 }

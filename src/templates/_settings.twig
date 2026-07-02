@@ -168,6 +168,16 @@
 		errors: settings.getErrors('recaptchaScoreThreshold'),
 	}) }}
 
+	{{ forms.textField({
+		label: 'Reject threshold'|t('secure-forms'),
+		instructions: 'Scores below this value (0–1) are definite spam: rejected outright and not stored. Between this and the score threshold, submissions are stored as spam for review.'|t('secure-forms'),
+		id: 'recaptchaRejectThreshold',
+		name: 'recaptchaRejectThreshold',
+		value: settings.recaptchaRejectThreshold,
+		size: 5,
+		errors: settings.getErrors('recaptchaRejectThreshold'),
+	}) }}
+
 	{{ forms.lightswitchField({
 		label: 'Hide badge'|t('secure-forms'),
 		instructions: 'Hide the reCAPTCHA badge. Google requires the reCAPTCHA attribution text to be visible in your form when enabled.'|t('secure-forms'),

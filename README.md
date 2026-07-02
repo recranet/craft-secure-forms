@@ -93,6 +93,9 @@ return [
     'recaptchaSiteKey' => '$RECAPTCHA_SITE_KEY',
     'recaptchaSecretKey' => '$RECAPTCHA_SECRET_KEY',
     'recaptchaScoreThreshold' => App::env('RECAPTCHA_SCORE_THRESHOLD') ?? 0.5,
+    // Below this score: definite spam, rejected and not stored; between the
+    // two thresholds: stored as spam for review
+    'recaptchaRejectThreshold' => App::env('RECAPTCHA_REJECT_THRESHOLD') ?? 0.3,
     'recaptchaHideBadge' => App::env('RECAPTCHA_HIDE_BADGE') ?? true,
     // Only used by the recaptcha-enterprise provider (createAssessment API)
     'recaptchaProjectId' => '$RECAPTCHA_PROJECT_ID',
@@ -121,6 +124,7 @@ Captcha keys live in `.env`:
 RECAPTCHA_SITE_KEY=
 RECAPTCHA_SECRET_KEY=
 #RECAPTCHA_SCORE_THRESHOLD=0.5
+#RECAPTCHA_REJECT_THRESHOLD=0.3
 #RECAPTCHA_HIDE_BADGE=true
 # Only for the recaptcha-enterprise provider (createAssessment API)
 #RECAPTCHA_PROJECT_ID=
@@ -166,7 +170,8 @@ Every submission is stored *before* any email is attempted, so nothing is ever l
 
 | Failure | Visitor sees | Stored as | Admin alert |
 |---|---|---|---|
-| Spam (honeypot / captcha failed / low score) | Success by default (`spamAction: silent`) | `spam` + score/reason | Reviewable in the Submissions index (spam is not an error) |
+| Definite spam (honeypot hit, score below the reject threshold) | Success by default (`spamAction: silent`) | Not stored — rejected outright | Info log only |
+| Gray-zone spam (score between reject and score thresholds, invalid/expired token) | Success by default (`spamAction: silent`) | `spam` + score/reason | Reviewable in the Submissions index (spam is not an error) |
 | Captcha misconfiguration (missing keys, domain not allowlisted, API unreachable, Enterprise quota) | "Could not be verified" error | `failed` + cause in `sendError` | Nav badge + error log (Sentry when installed) |
 | SMTP / transport failure | "Could not be sent" error | `failed` + cause in `sendError` | Nav badge + error log (Sentry when installed) |
 

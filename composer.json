@@ -3,7 +3,7 @@
 	"description": "Contact forms for Craft CMS 5 with spam protection (reCAPTCHA, Turnstile, honeypot), persisted spam scores, stored submissions, proper error reporting and an SMTP test utility",
 	"type": "craft-plugin",
 	"license": "proprietary",
-	"version": "1.2.0",
+	"version": "1.3.0",
 	"keywords": [
 		"craft",
 		"cms",

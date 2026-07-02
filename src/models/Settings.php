@@ -61,6 +61,8 @@ class Settings extends Model
     public ?string $recaptchaSecretKey = null;
     /** @var float|string Minimum reCAPTCHA v3 score (0–1) required to not be classified as spam */
     public float|string $recaptchaScoreThreshold = 0.5;
+    /** @var float|string Scores below this value (0–1) are definite spam: rejected outright and not stored. Between this and the score threshold, submissions are stored as spam for review. */
+    public float|string $recaptchaRejectThreshold = 0.3;
     /** @var bool Hide the reCAPTCHA v3 badge (Google requires visible attribution text in your form when enabled) */
     public bool $recaptchaHideBadge = false;
     /** @var string|null Google Cloud project ID (reCAPTCHA Enterprise only) */
@@ -102,7 +104,12 @@ class Settings extends Model
             ]],
             [['spamAction'], 'in', 'range' => [self::SPAM_ACTION_SILENT, self::SPAM_ACTION_ERROR]],
             [['honeypotParam'], 'required'],
-            [['recaptchaScoreThreshold'], 'number', 'min' => 0, 'max' => 1],
+            [['recaptchaScoreThreshold', 'recaptchaRejectThreshold'], 'number', 'min' => 0, 'max' => 1],
+            [['recaptchaRejectThreshold'], function(string $attribute) {
+                if ($this->getRecaptchaRejectThreshold() > $this->getRecaptchaScoreThreshold()) {
+                    $this->addError($attribute, \Craft::t('secure-forms', 'The reject threshold cannot be higher than the score threshold.'));
+                }
+            }],
         ];
     }
 
@@ -155,5 +162,10 @@ class Settings extends Model
     public function getRecaptchaScoreThreshold(): float
     {
         return (float)$this->recaptchaScoreThreshold;
+    }
+
+    public function getRecaptchaRejectThreshold(): float
+    {
+        return (float)$this->recaptchaRejectThreshold;
     }
 }

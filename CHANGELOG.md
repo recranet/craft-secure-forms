@@ -1,5 +1,17 @@
 # Release Notes for Secure Forms
 
+## 1.3.0 - 2026-07-02
+
+### Added
+
+- Status sources in the Submissions index sidebar: "Inbox (sent)", "Spam" and "Failed" alongside "All submissions", with per-form sources grouped under a "Forms" heading and a badge on "Failed"
+- `recaptchaRejectThreshold` setting (default 0.3): scores below it are definite spam — rejected outright and not stored — so the reviewable spam list only contains gray-zone submissions between the reject and score thresholds
+
+### Changed
+
+- Honeypot hits are now rejected without being stored (a filled-in honeypot is definitely a bot); previously they were stored as spam
+- Unscored captcha failures (invalid/expired token) remain stored as spam for review, since a slow legitimate visitor can trigger them
+
 ## 1.2.0 - 2026-07-02
 
 ### Added

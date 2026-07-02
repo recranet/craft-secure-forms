@@ -71,33 +71,32 @@ class SubmitController extends Controller
         $submission->spamScore = $verdict->score;
         $submission->spamReason = $verdict->reason;
 
-        // Persist before any email is attempted, so nothing is ever lost
-        $this->saveSubmission($submission, $settings);
-
-        if ($submission->isSpam) {
+        // Definite spam (honeypot, score below the reject threshold) is
+        // rejected without being stored — the reviewable spam list only
+        // keeps gray-zone submissions that might be false positives
+        if ($verdict->isSpam && $verdict->reject) {
             Plugin::info(sprintf(
-                'Submission from %s classified as spam: %s (score: %s)',
+                'Submission from %s rejected as definite spam (not stored): %s (score: %s)',
                 $submission->fromEmail,
                 $verdict->reason,
                 $verdict->score ?? 'n/a'
             ));
 
-            if ($settings->spamAction === Settings::SPAM_ACTION_ERROR) {
-                $submission->addError('spam', Craft::t('secure-forms', 'Your submission was flagged as spam.'));
+            return $this->spamResponse($submission, $settings);
+        }
 
-                return $this->asModelFailure(
-                    $submission,
-                    Craft::t('secure-forms', 'Your submission was flagged as spam.'),
-                    'submission'
-                );
-            }
+        // Persist before any email is attempted, so nothing is ever lost
+        $this->saveSubmission($submission, $settings);
 
-            // Silent accept: don't teach bots what we detect
-            return $this->asModelSuccess(
-                $submission,
-                Craft::t('secure-forms', 'Your message has been sent.'),
-                'submission'
-            );
+        if ($submission->isSpam) {
+            Plugin::info(sprintf(
+                'Submission from %s stored as spam for review: %s (score: %s)',
+                $submission->fromEmail,
+                $verdict->reason,
+                $verdict->score ?? 'n/a'
+            ));
+
+            return $this->spamResponse($submission, $settings);
         }
 
         try {
@@ -187,6 +186,30 @@ class SubmitController extends Controller
         }
 
         return !$submission->hasErrors();
+    }
+
+    /**
+     * The response for a spam-classified submission, per the spamAction
+     * setting: silent fake success by default (don't teach bots what gets
+     * detected), or an explicit error.
+     */
+    private function spamResponse(Submission $submission, Settings $settings): ?Response
+    {
+        if ($settings->spamAction === Settings::SPAM_ACTION_ERROR) {
+            $submission->addError('spam', Craft::t('secure-forms', 'Your submission was flagged as spam.'));
+
+            return $this->asModelFailure(
+                $submission,
+                Craft::t('secure-forms', 'Your submission was flagged as spam.'),
+                'submission'
+            );
+        }
+
+        return $this->asModelSuccess(
+            $submission,
+            Craft::t('secure-forms', 'Your message has been sent.'),
+            'submission'
+        );
     }
 
     /**

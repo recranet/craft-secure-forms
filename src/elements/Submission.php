@@ -183,6 +183,26 @@ class Submission extends Element
                 'criteria' => [],
                 'defaultSort' => ['dateCreated', 'desc'],
             ],
+            [
+                'key' => 'inbox',
+                'label' => Craft::t('secure-forms', 'Inbox (sent)'),
+                'criteria' => ['status' => self::STATUS_SENT],
+                'defaultSort' => ['dateCreated', 'desc'],
+            ],
+            [
+                'key' => 'spam',
+                'label' => Craft::t('secure-forms', 'Spam'),
+                'criteria' => ['status' => self::STATUS_SPAM],
+                'defaultSort' => ['dateCreated', 'desc'],
+            ],
+            [
+                'key' => 'failed',
+                'label' => Craft::t('secure-forms', 'Failed'),
+                'criteria' => ['status' => self::STATUS_FAILED],
+                'defaultSort' => ['dateCreated', 'desc'],
+                // Same alert as the CP nav item: failed sends need attention
+                'badgeCount' => \recranet\secureforms\Plugin::getInstance()->getFailedSubmissionCount(),
+            ],
         ];
 
         // One source per distinct form name
@@ -193,6 +213,10 @@ class Submission extends Element
             ->where(['not', ['form' => null]])
             ->orderBy(['form' => SORT_ASC])
             ->column();
+
+        if ($forms !== []) {
+            $sources[] = ['heading' => Craft::t('secure-forms', 'Forms')];
+        }
 
         foreach ($forms as $form) {
             $sources[] = [
