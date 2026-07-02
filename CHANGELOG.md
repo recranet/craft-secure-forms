@@ -1,5 +1,11 @@
 # Release Notes for Secure Forms
 
+## 1.5.1 - 2026-07-02
+
+### Fixed
+
+- Migrated submissions now keep their original creation date in the submissions table (previously stamped with the migration time), which also fixes the migration command's duplicate detection on re-runs
+
 ## 1.5.0 - 2026-07-02
 
 ### Added

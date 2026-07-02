@@ -51,12 +51,16 @@ class MigrateController extends Controller
         $elements = Craft::$app->getElements();
 
         foreach (Db::each($query) as $row) {
-            // Idempotency: skip rows that were already migrated
-            $exists = Submission::find()
-                ->form($row['form'])
-                ->fromEmail($row['fromEmail'])
-                ->dateCreated(Db::prepareDateForDb($row['dateCreated']))
-                ->status(null)
+            // Idempotency: skip rows that were already migrated. Compared on
+            // the raw column values (both tables store UTC), avoiding any
+            // timezone interpretation.
+            $exists = (new Query())
+                ->from(Submission::TABLE)
+                ->where([
+                    'form' => $row['form'],
+                    'fromEmail' => $row['fromEmail'],
+                    'dateCreated' => $row['dateCreated'],
+                ])
                 ->exists();
 
             if ($exists) {

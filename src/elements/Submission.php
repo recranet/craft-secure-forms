@@ -165,6 +165,16 @@ class Submission extends Element
             'sendError' => $this->sendError,
         ];
 
+        // Mirror the element's dates instead of letting Db::insert() stamp
+        // "now", so migrated submissions keep their original creation date
+        if ($this->dateCreated !== null) {
+            $data['dateCreated'] = Db::prepareDateForDb($this->dateCreated);
+        }
+
+        if ($this->dateUpdated !== null) {
+            $data['dateUpdated'] = Db::prepareDateForDb($this->dateUpdated);
+        }
+
         if ($isNew) {
             Db::insert(self::TABLE, ['id' => $this->id] + $data);
         } else {
