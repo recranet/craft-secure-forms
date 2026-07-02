@@ -1,0 +1,27 @@
+{# Built-in notification email body, used when no site template is configured #}
+<h2>{{ 'New contact form submission'|t('secure-forms') }}</h2>
+
+<table cellpadding="4" cellspacing="0" border="0">
+	<tbody>
+		<tr>
+			<td><strong>{{ 'Name'|t('secure-forms') }}</strong></td>
+			<td>{{ submission.fromName }}</td>
+		</tr>
+		<tr>
+			<td><strong>{{ 'Email'|t('secure-forms') }}</strong></td>
+			<td>{{ submission.fromEmail }}</td>
+		</tr>
+		{% if submission.subject %}
+			<tr>
+				<td><strong>{{ 'Subject'|t('secure-forms') }}</strong></td>
+				<td>{{ submission.subject }}</td>
+			</tr>
+		{% endif %}
+		{% for key, value in message %}
+			<tr>
+				<td valign="top"><strong>{{ key|ucfirst }}</strong></td>
+				<td>{{ value is iterable ? value|json_encode : value|nl2br }}</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>

@@ -1,0 +1,79 @@
+{# Read-only detail view for a stored submission #}
+{% extends '_layouts/cp.twig' %}
+
+{% set title = 'Submission'|t('secure-forms') ~ ' #' ~ submission.id %}
+{% set crumbs = [
+	{ label: 'Secure Forms'|t('secure-forms'), url: url('secure-forms') },
+] %}
+
+{% set status = submission.getStatus() %}
+
+{% block content %}
+	<div class="pane">
+		{% set statusLabels = { sent: 'Sent'|t('secure-forms'), spam: 'Spam'|t('secure-forms'), failed: 'Failed'|t('secure-forms') } %}
+		<p>
+			<span class="status {{ status == 'sent' ? 'green' : (status == 'spam' ? 'red' : 'orange') }}"></span>
+			<strong>{{ statusLabels[status] ?? status }}</strong>
+
+			{% if status == 'spam' %}
+				— {{ 'Reason'|t('secure-forms') }}: <code>{{ submission.spamReason }}</code>
+			{% endif %}
+
+			{% if submission.spamScore is not null %}
+				— {{ 'Spam score'|t('secure-forms') }}: <code>{{ submission.spamScore|number_format(2) }}</code>
+			{% endif %}
+		</p>
+
+		{% if submission.sendError %}
+			<p class="error">
+				<strong>{{ 'Send error'|t('secure-forms') }}:</strong>
+				{{ submission.sendError }}
+			</p>
+		{% endif %}
+
+		<hr>
+
+		<table class="data fullwidth">
+			<tbody>
+				<tr>
+					<th class="light">{{ 'Date'|t('secure-forms') }}</th>
+					<td>{{ submission.dateCreated|datetime('short') }}</td>
+				</tr>
+				<tr>
+					<th class="light">{{ 'Form'|t('secure-forms') }}</th>
+					<td>{{ submission.form }}</td>
+				</tr>
+				<tr>
+					<th class="light">{{ 'Name'|t('secure-forms') }}</th>
+					<td>{{ submission.fromName }}</td>
+				</tr>
+				<tr>
+					<th class="light">{{ 'Email'|t('secure-forms') }}</th>
+					<td><a href="mailto:{{ submission.fromEmail }}">{{ submission.fromEmail }}</a></td>
+				</tr>
+				{% if submission.subject %}
+					<tr>
+						<th class="light">{{ 'Subject'|t('secure-forms') }}</th>
+						<td>{{ submission.subject }}</td>
+					</tr>
+				{% endif %}
+				{% for key, value in submission.message %}
+					<tr>
+						<th class="light">{{ key|ucfirst }}</th>
+						<td>
+							{% if value is iterable %}
+								<ul>
+									{% for item in value %}
+										<li>{{ item is iterable ? item|json_encode : item }}</li>
+									{% endfor %}
+								</ul>
+							{% else %}
+								{{ value|nl2br }}
+							{% endif %}
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endblock %}

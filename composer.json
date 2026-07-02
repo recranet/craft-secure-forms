@@ -1,0 +1,50 @@
+{
+	"name": "recranet/craft-secure-forms",
+	"description": "Contact forms for Craft CMS 5 with spam protection (reCAPTCHA, Turnstile, honeypot), persisted spam scores, stored submissions, proper error reporting and an SMTP test utility",
+	"type": "craft-plugin",
+	"license": "proprietary",
+	"version": "1.0.0",
+	"keywords": [
+		"craft",
+		"cms",
+		"craftcms",
+		"craft-plugin",
+		"contact",
+		"form",
+		"recaptcha",
+		"turnstile",
+		"spam"
+	],
+	"support": {
+		"email": "support@recranet.com"
+	},
+	"require": {
+		"php": ">=8.2",
+		"craftcms/cms": "^5.0",
+		"guzzlehttp/guzzle": "^7.2"
+	},
+	"require-dev": {
+		"craftcms/phpstan": "dev-main"
+	},
+	"autoload": {
+		"psr-4": {
+			"recranet\\secureforms\\": "src/"
+		}
+	},
+	"extra": {
+		"handle": "secure-forms",
+		"name": "Secure Forms",
+		"developer": "Recranet",
+		"developerUrl": "https://www.recranet.com",
+		"class": "recranet\\secureforms\\Plugin"
+	},
+	"config": {
+		"allow-plugins": {
+			"craftcms/plugin-installer": true,
+			"yiisoft/yii2-composer": true
+		},
+		"sort-packages": true
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true
+}

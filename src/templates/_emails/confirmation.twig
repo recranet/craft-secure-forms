@@ -1,0 +1,4 @@
+{# Built-in confirmation email body, used when no site template is configured #}
+<p>{{ 'Thank you for your message, {name}.'|t('secure-forms', { name: submission.fromName }) }}</p>
+
+<p>{{ 'We have received your submission and will get back to you as soon as possible.'|t('secure-forms') }}</p>

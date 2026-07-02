@@ -1,0 +1,196 @@
+{% import '_includes/forms.twig' as forms %}
+
+<h2>{{ 'Email'|t('secure-forms') }}</h2>
+
+{{ forms.autosuggestField({
+	label: 'To email'|t('secure-forms'),
+	instructions: 'Recipient(s) of notification emails, comma separated. Defaults to the system email address. Supports environment variables.'|t('secure-forms'),
+	id: 'toEmail',
+	name: 'toEmail',
+	value: settings.toEmail,
+	suggestEnvVars: true,
+	errors: settings.getErrors('toEmail'),
+}) }}
+
+{{ forms.textField({
+	label: 'Prepend subject'|t('secure-forms'),
+	instructions: 'Prefix for the notification email subject.'|t('secure-forms'),
+	id: 'prependSubject',
+	name: 'prependSubject',
+	value: settings.prependSubject,
+}) }}
+
+{{ forms.textField({
+	label: 'Prepend sender name'|t('secure-forms'),
+	instructions: 'Prefix for the sender name of notification emails.'|t('secure-forms'),
+	id: 'prependSender',
+	name: 'prependSender',
+	value: settings.prependSender,
+}) }}
+
+{{ forms.autosuggestField({
+	label: 'Notification template'|t('secure-forms'),
+	instructions: 'Site template for the notification email body. Leave empty to use the built-in template.'|t('secure-forms'),
+	id: 'notificationTemplate',
+	name: 'notificationTemplate',
+	value: settings.notificationTemplate,
+	suggestions: craft.cp.getTemplateSuggestions(),
+}) }}
+
+{{ forms.lightswitchField({
+	label: 'Send confirmation email'|t('secure-forms'),
+	instructions: 'Send a confirmation email to the submitter.'|t('secure-forms'),
+	id: 'enableConfirmationEmail',
+	name: 'enableConfirmationEmail',
+	on: settings.enableConfirmationEmail,
+}) }}
+
+{{ forms.autosuggestField({
+	label: 'Confirmation template'|t('secure-forms'),
+	instructions: 'Site template for the confirmation email body. Leave empty to use the built-in template.'|t('secure-forms'),
+	id: 'confirmationTemplate',
+	name: 'confirmationTemplate',
+	value: settings.confirmationTemplate,
+	suggestions: craft.cp.getTemplateSuggestions(),
+}) }}
+
+{{ forms.textField({
+	label: 'Confirmation subject'|t('secure-forms'),
+	id: 'confirmationSubject',
+	name: 'confirmationSubject',
+	value: settings.confirmationSubject,
+}) }}
+
+<hr>
+
+<h2>{{ 'Storage'|t('secure-forms') }}</h2>
+
+{{ forms.lightswitchField({
+	label: 'Save submissions'|t('secure-forms'),
+	instructions: 'Store submissions in the database (dynamic fields are stored as JSON and expanded again on export).'|t('secure-forms'),
+	id: 'saveSubmissions',
+	name: 'saveSubmissions',
+	on: settings.saveSubmissions,
+}) }}
+
+{{ forms.lightswitchField({
+	label: 'Save spam submissions'|t('secure-forms'),
+	instructions: 'Also store submissions classified as spam, including their spam score and reason.'|t('secure-forms'),
+	id: 'saveSpamSubmissions',
+	name: 'saveSpamSubmissions',
+	on: settings.saveSpamSubmissions,
+}) }}
+
+<hr>
+
+<h2>{{ 'Spam protection'|t('secure-forms') }}</h2>
+
+{{ forms.selectField({
+	label: 'Spam response'|t('secure-forms'),
+	instructions: 'What the visitor sees when their submission is classified as spam. Silent success is recommended: it does not teach bots what gets detected, and the submission is still stored for review.'|t('secure-forms'),
+	id: 'spamAction',
+	name: 'spamAction',
+	value: settings.spamAction,
+	options: [
+		{ value: 'silent', label: 'Pretend success (recommended)'|t('secure-forms') },
+		{ value: 'error', label: 'Show an error'|t('secure-forms') },
+	],
+}) }}
+
+{{ forms.lightswitchField({
+	label: 'Honeypot'|t('secure-forms'),
+	instructions: 'Add a hidden field that only bots fill in. Render it with {tag} inside your form.'|t('secure-forms', { tag: '`{{ craft.secureForms.honeypot() }}`' }),
+	id: 'honeypotEnabled',
+	name: 'honeypotEnabled',
+	on: settings.honeypotEnabled,
+}) }}
+
+{{ forms.textField({
+	label: 'Honeypot field name'|t('secure-forms'),
+	id: 'honeypotParam',
+	name: 'honeypotParam',
+	value: settings.honeypotParam,
+	errors: settings.getErrors('honeypotParam'),
+}) }}
+
+{{ forms.selectField({
+	label: 'Captcha provider'|t('secure-forms'),
+	instructions: 'Render the widget with {tag} inside your form. Configuration problems (invalid keys, domain not allowlisted) are reported as errors — they never silently classify submissions as spam.'|t('secure-forms', { tag: '`{{ craft.secureForms.captcha() }}`' }),
+	id: 'captchaProvider',
+	name: 'captchaProvider',
+	value: settings.captchaProvider,
+	toggle: true,
+	targetPrefix: 'provider-',
+	options: [
+		{ value: '', label: 'None'|t('secure-forms') },
+		{ value: 'recaptcha-v2', label: 'Google reCAPTCHA v2 (checkbox)' },
+		{ value: 'recaptcha-v3', label: 'Google reCAPTCHA v3 (invisible, score-based)' },
+		{ value: 'turnstile', label: 'Cloudflare Turnstile — experimental'|t('secure-forms') },
+	],
+}) }}
+
+{% set showRecaptcha = settings.captchaProvider starts with 'recaptcha' %}
+
+<div id="provider-recaptcha-v2" class="{{ settings.captchaProvider != 'recaptcha-v2' ? 'hidden' }}"></div>
+
+<div id="provider-recaptcha-keys" class="{{ not showRecaptcha ? 'hidden' }}">
+	{{ forms.autosuggestField({
+		label: 'reCAPTCHA site key'|t('secure-forms'),
+		id: 'recaptchaSiteKey',
+		name: 'recaptchaSiteKey',
+		value: settings.recaptchaSiteKey,
+		suggestEnvVars: true,
+	}) }}
+
+	{{ forms.autosuggestField({
+		label: 'reCAPTCHA secret key'|t('secure-forms'),
+		id: 'recaptchaSecretKey',
+		name: 'recaptchaSecretKey',
+		value: settings.recaptchaSecretKey,
+		suggestEnvVars: true,
+	}) }}
+</div>
+
+<div id="provider-recaptcha-v3" class="{{ settings.captchaProvider != 'recaptcha-v3' ? 'hidden' }}">
+	{{ forms.textField({
+		label: 'Score threshold'|t('secure-forms'),
+		instructions: 'Submissions scoring below this value (0–1) are classified as spam. The score is stored with every submission.'|t('secure-forms'),
+		id: 'recaptchaScoreThreshold',
+		name: 'recaptchaScoreThreshold',
+		value: settings.recaptchaScoreThreshold,
+		size: 5,
+		errors: settings.getErrors('recaptchaScoreThreshold'),
+	}) }}
+</div>
+
+<div id="provider-turnstile" class="{{ settings.captchaProvider != 'turnstile' ? 'hidden' }}">
+	<p class="warning with-icon">{{ 'Turnstile support is experimental.'|t('secure-forms') }}</p>
+
+	{{ forms.autosuggestField({
+		label: 'Turnstile site key'|t('secure-forms'),
+		id: 'turnstileSiteKey',
+		name: 'turnstileSiteKey',
+		value: settings.turnstileSiteKey,
+		suggestEnvVars: true,
+	}) }}
+
+	{{ forms.autosuggestField({
+		label: 'Turnstile secret key'|t('secure-forms'),
+		id: 'turnstileSecretKey',
+		name: 'turnstileSecretKey',
+		value: settings.turnstileSecretKey,
+		suggestEnvVars: true,
+	}) }}
+</div>
+
+{% js %}
+	// Show the shared reCAPTCHA key fields for both v2 and v3
+	(function () {
+		var select = document.getElementById('{{ 'captchaProvider'|namespaceInputId }}');
+		var keys = document.getElementById('{{ 'provider-recaptcha-keys'|namespaceInputId }}');
+		if (!select || !keys) return;
+		select.addEventListener('change', function () {
+			keys.classList.toggle('hidden', select.value.indexOf('recaptcha') !== 0);
+		});
+	})();
+{% endjs %}
