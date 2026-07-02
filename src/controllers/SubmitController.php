@@ -42,6 +42,7 @@ class SubmitController extends Controller
         $notificationTemplate = $this->validatedParam('notificationTemplate');
         $confirmationTemplate = $this->validatedParam('confirmationTemplate');
         $confirmationSubject = $this->validatedParam('confirmationSubject');
+        $toEmail = $this->validatedParam('toEmail');
 
         if (!$this->validateSubmission($submission)) {
             return $this->asModelFailure(
@@ -100,7 +101,7 @@ class SubmitController extends Controller
         }
 
         try {
-            $plugin->mail->sendNotification($submission, $notificationTemplate);
+            $plugin->mail->sendNotification($submission, $notificationTemplate, $toEmail);
         } catch (\Throwable $e) {
             Plugin::error('Failed to send the contact form notification email', $e);
             $submission->sendError = $e->getMessage();

@@ -33,7 +33,8 @@ php craft plugin/install secure-forms
 	{{ redirectInput(craft.app.request.pathInfo ~ '?submitted=true') }}
 	{{ hiddenInput('formName', 'contact') }}
 
-	{# optional template overrides (hashed, tamper-proof) #}
+	{# optional overrides (hashed, tamper-proof) #}
+	{{ hiddenInput('toEmail', 'sales@example.com'|hash) }}
 	{{ hiddenInput('notificationTemplate', '_emails/notifications/contact'|hash) }}
 	{{ hiddenInput('confirmationTemplate', '_emails/confirmations/contact'|hash) }}
 	{{ hiddenInput('confirmationSubject', 'Thanks!'|hash) }}

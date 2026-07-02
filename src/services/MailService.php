@@ -23,12 +23,19 @@ class MailService extends Component
      * Send the notification email to the configured recipient(s).
      *
      * @param string|null $templateOverride Site template path from a hashed form field
+     * @param string|null $toEmailOverride Recipient(s) from a hashed form
+     * field (comma separated) — hashed, so only developers control the value
      * @throws MailError|\Throwable
      */
-    public function sendNotification(Submission $submission, ?string $templateOverride = null): void
+    public function sendNotification(Submission $submission, ?string $templateOverride = null, ?string $toEmailOverride = null): void
     {
         $settings = Plugin::getInstance()->getSettings();
-        $toEmails = $settings->getToEmails();
+
+        if ($toEmailOverride !== null) {
+            $toEmails = array_values(array_filter(array_map('trim', explode(',', $toEmailOverride))));
+        } else {
+            $toEmails = $settings->getToEmails();
+        }
 
         if ($toEmails === []) {
             throw new MailError('No notification recipient configured — set the "To email" plugin setting or the system email address');

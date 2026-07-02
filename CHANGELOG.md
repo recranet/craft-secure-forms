@@ -1,5 +1,11 @@
 # Release Notes for Secure Forms
 
+## 1.4.0 - 2026-07-02
+
+### Added
+
+- Hashed `toEmail` form field override for per-form notification recipients (comma separated), compatible with the `craftcms/contact-form` convention
+
 ## 1.3.0 - 2026-07-02
 
 ### Added
