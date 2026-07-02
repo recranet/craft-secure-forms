@@ -1,5 +1,11 @@
 # Release Notes for Secure Forms
 
+## 1.5.0 - 2026-07-02
+
+### Added
+
+- `secure-forms/migrate/contact-form-extensions` console command that copies stored submissions from craft-contact-form-extensions into Secure Forms (idempotent; run before uninstalling the old plugin)
+
 ## 1.4.0 - 2026-07-02
 
 ### Added

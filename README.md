@@ -165,6 +165,16 @@ Google deprecated classic reCAPTCHA and migrated all keys to Google Cloud projec
 - **Enterprise API** — Google's long-term replacement for `siteverify` is the [`createAssessment`](https://cloud.google.com/recaptcha/docs/reference/rest/v1/projects.assessments/create) API, supported by this plugin as the `recaptcha-enterprise` provider (requires `RECAPTCHA_PROJECT_ID` + `RECAPTCHA_API_KEY`). It returns the real risk score and fails closed on quota (HTTP 429, surfaced as a visible error) instead of silently passing.
 - **Cloudflare Turnstile** — free, no assessment quota and no Google dependency; available as the `turnstile` provider (experimental) if moving away from reCAPTCHA entirely.
 
+## Migrating from contact-form-extensions
+
+Stored submissions can be copied from `craft-contact-form-extensions` into Secure Forms. Run this **before** uninstalling the old plugin (its uninstall drops the source table):
+
+```bash
+php craft secure-forms/migrate/contact-form-extensions
+```
+
+Safe to re-run: already-migrated submissions are skipped. Recommended production order: install Secure Forms → run the migration → uninstall the old plugins.
+
 ## Failure handling & manual delivery
 
 Every submission is stored *before* any email is attempted, so nothing is ever lost. What happens per failure mode:
